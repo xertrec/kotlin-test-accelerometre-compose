@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.testaccelerometrecompose.ui.theme.MainScreen
 import com.example.testaccelerometrecompose.ui.theme.TestAccelerometreComposeTheme
 
 class MainActivity : ComponentActivity(), SensorEventListener {
@@ -32,10 +34,12 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var lastUpdate: Long = 0
 
+    private val viewModel: MainViewModel by viewModels()
+
     private var color : MutableState<Boolean> = mutableStateOf(false)
 
-        @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-        override fun onCreate(savedInstanceState: Bundle?) {
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
@@ -50,9 +54,9 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         enableEdgeToEdge()
         setContent {
             TestAccelerometreComposeTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) {
-                    SensorsInfo(color)
-                }
+                MainScreen(
+                    viewModel = viewModel
+                )
             }
         }
     }
@@ -97,23 +101,3 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         sensorManager.unregisterListener(this)
     }
 }
-
-@Composable
-fun SensorsInfo(color: MutableState<Boolean> ) {
-    Card(
-        modifier = Modifier.fillMaxSize(),
-        colors = CardDefaults.cardColors(if (color.value) Color.Red else Color.Green),
-        shape = CardDefaults.shape,
-        elevation = CardDefaults.cardElevation(),
-        border = BorderStroke(10.dp, if (color.value) Color.Black else Color.LightGray)
-    ) {
-        Column() {
-            Text(text = "")
-            Row() {
-                Text(text = "            ")
-                Text(text = stringResource(R.string.shake))
-            }
-        }
-    }
-}
-
