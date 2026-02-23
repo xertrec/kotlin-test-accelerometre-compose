@@ -1,64 +1,56 @@
 package com.example.testaccelerometrecompose
 
 import android.content.Context
-import android.content.Context.SENSOR_SERVICE
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.widget.Toast
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 
-class AccelerometerSensorManager (val context: Context): SensorEventListener {
-    private lateinit var sensorManager: SensorManager
-    private var lastUpdate: Long = 0
-    private var color : MutableState<Boolean> = mutableStateOf(false)
+class AccelerometerSensorManager(context: Context) {
 
-    fun sensorCreator(){
-        sensorManager = context.getSystemService(SENSOR_SERVICE) as SensorManager
-        sensorManager.registerListener(
-            this,
-            sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-            SensorManager.SENSOR_DELAY_NORMAL
-        )
-        lastUpdate = System.currentTimeMillis()
-    }
+    private val sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    private val accelerometer: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
-    fun sensorDeletor(){
-        sensorManager.unregisterListener(this)
-    }
+    private var onSensorValuesChanged: ((Triple<Float, Float, Float>) -> Unit)? = null
 
-    private fun getAccelerometer(event: SensorEvent) {
-        val accelerationSquareRootThreshold = 200
-        val timeThreashold = 1000
-        val values = event.values
+    val isSensorAvailable: Boolean
+        get() = accelerometer != null
 
-        val x = values[0]
-        val y = values[1]
-        val z = values[2]
-        val accelerationSquareRoot = (x * x + y * y + z * z
-                / (SensorManager.GRAVITY_EARTH * SensorManager.GRAVITY_EARTH))
-        val actualTime = System.currentTimeMillis()
-        if (accelerationSquareRoot >= accelerationSquareRootThreshold) {
-            if (actualTime - lastUpdate < timeThreashold) {
-                return
-            }
-            lastUpdate = actualTime
-            Toast.makeText(this, R.string.shuffed, Toast.LENGTH_SHORT).show()
-            color.value = !(color.value)
+    fun getSensorInfo(): String {
+        return if (isSensorAvailable) {
+            "Name: ${accelerometer?.name}\n" +
+            "Vendor: ${accelerometer?.vendor}\n" +
+            "Version: ${accelerometer?.version}\n" +
+            "Resolution: ${accelerometer?.resolution}\n" +
+            "Power: ${accelerometer?.power} mA\n" +
+            "Max Range: ${accelerometer?.maximumRange}"
+        } else {
+            "Accelerometer not available"
         }
     }
 
-    override fun onSensorChanged(p0: SensorEvent?) {
-        getAccelerometer(p0)
+    private val sensorEventListener = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent?) {
+            if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
+                val values = Triple(event.values[0], event.values[1], event.values[2])
+                onSensorValuesChanged?.invoke(values)
+            }
+        }
+
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
     }
 
-    override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
-        if (p0?.type == Sensor.TYPE_LIGHT) Toast.makeText(
-            this,
-            context.getString(R.string.changAcc, p1),
-            Toast.LENGTH_SHORT
-        ).show()
+    fun setOnSensorValuesChangedListener(listener: (Triple<Float, Float, Float>) -> Unit) {
+        onSensorValuesChanged = listener
+    }
+
+    fun startListening() {
+        if (isSensorAvailable) {
+            sensorManager.registerListener(sensorEventListener, accelerometer, SensorManager.SENSOR_DELAY_UI)
+        }
+    }
+
+    fun stopListening() {
+        sensorManager.unregisterListener(sensorEventListener)
     }
 }

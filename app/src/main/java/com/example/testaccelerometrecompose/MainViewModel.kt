@@ -1,18 +1,37 @@
 package com.example.testaccelerometrecompose
 
 import android.app.Application
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
-    private val _color: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val color = _color.asStateFlow()
+    private val accelerometerSensorManager = AccelerometerSensorManager(application)
+
+    private val _accelerometerData = MutableStateFlow(Triple(0f, 0f, 0f))
+    val accelerometerData = _accelerometerData.asStateFlow()
+
+    private val _isAccelerometerAvailable = MutableStateFlow(false)
+    val isAccelerometerAvailable = _isAccelerometerAvailable.asStateFlow()
+
+    private val _accelerometerInfo = MutableStateFlow("")
+    val accelerometerInfo = _accelerometerInfo.asStateFlow()
 
     init {
-        val sensorManager = AccelerometerSensorManager(application)
+        _isAccelerometerAvailable.value = accelerometerSensorManager.isSensorAvailable
+        if (accelerometerSensorManager.isSensorAvailable) {
+            _accelerometerInfo.value = accelerometerSensorManager.getSensorInfo()
+            accelerometerSensorManager.setOnSensorValuesChangedListener { values ->
+                _accelerometerData.value = values
+            }
+        }
+    }
+
+    fun startListening() {
+        accelerometerSensorManager.startListening()
+    }
+
+    fun stopListening() {
+        accelerometerSensorManager.stopListening()
     }
 }
