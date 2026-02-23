@@ -1,0 +1,64 @@
+package com.example.testaccelerometrecompose
+
+import android.content.Context
+import android.content.Context.SENSOR_SERVICE
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.widget.Toast
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+
+class AccelerometerSensorManager (val context: Context): SensorEventListener {
+    private lateinit var sensorManager: SensorManager
+    private var lastUpdate: Long = 0
+    private var color : MutableState<Boolean> = mutableStateOf(false)
+
+    fun sensorCreator(){
+        sensorManager = context.getSystemService(SENSOR_SERVICE) as SensorManager
+        sensorManager.registerListener(
+            this,
+            sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+            SensorManager.SENSOR_DELAY_NORMAL
+        )
+        lastUpdate = System.currentTimeMillis()
+    }
+
+    fun sensorDeletor(){
+        sensorManager.unregisterListener(this)
+    }
+
+    private fun getAccelerometer(event: SensorEvent) {
+        val accelerationSquareRootThreshold = 200
+        val timeThreashold = 1000
+        val values = event.values
+
+        val x = values[0]
+        val y = values[1]
+        val z = values[2]
+        val accelerationSquareRoot = (x * x + y * y + z * z
+                / (SensorManager.GRAVITY_EARTH * SensorManager.GRAVITY_EARTH))
+        val actualTime = System.currentTimeMillis()
+        if (accelerationSquareRoot >= accelerationSquareRootThreshold) {
+            if (actualTime - lastUpdate < timeThreashold) {
+                return
+            }
+            lastUpdate = actualTime
+            Toast.makeText(this, R.string.shuffed, Toast.LENGTH_SHORT).show()
+            color.value = !(color.value)
+        }
+    }
+
+    override fun onSensorChanged(p0: SensorEvent?) {
+        getAccelerometer(p0)
+    }
+
+    override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
+        if (p0?.type == Sensor.TYPE_LIGHT) Toast.makeText(
+            this,
+            context.getString(R.string.changAcc, p1),
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+}

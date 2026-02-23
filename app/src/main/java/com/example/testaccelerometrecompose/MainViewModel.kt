@@ -9,4 +9,8 @@ import kotlinx.coroutines.flow.asStateFlow
 class MainViewModel : ViewModel() {
     private val _color: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val color = _color.asStateFlow()
+
+    init {
+        val sensorManager = AccelerometerSensorManager(this)
+    }
 }
