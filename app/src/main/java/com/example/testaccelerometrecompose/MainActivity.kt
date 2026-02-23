@@ -30,6 +30,7 @@ import com.example.testaccelerometrecompose.ui.theme.TestAccelerometreComposeThe
 class MainActivity : ComponentActivity(), SensorEventListener {
 
     private lateinit var sensorManager: SensorManager
+    private var accelerometer: Sensor? = null
     private var lastUpdate: Long = 0
 
     private var color : MutableState<Boolean> = mutableStateOf(false)
@@ -39,12 +40,8 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         super.onCreate(savedInstanceState)
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-        sensorManager.registerListener(
-                this,
-                sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                SensorManager.SENSOR_DELAY_NORMAL
-            )
-        // register this class as a listener for the accelerometer sensor
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+
         lastUpdate = System.currentTimeMillis()
 
         enableEdgeToEdge()
@@ -57,8 +54,23 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        accelerometer?.let {
+            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+    }
+
+    override fun onPause() {
+        // unregister listener
+        super.onPause()
+        sensorManager.unregisterListener(this)
+    }
+
     override fun onSensorChanged(p0: SensorEvent) {
-        getAccelerometer(p0)
+        if (p0.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+            getAccelerometer(p0)
+        }
     }
 
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
@@ -90,12 +102,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             color.value = !(color.value)
         }
     }
-
-    override fun onPause() {
-        // unregister listener
-        super.onPause()
-        sensorManager.unregisterListener(this)
-    }
 }
 
 @Composable
@@ -116,4 +122,3 @@ fun SensorsInfo(color: MutableState<Boolean> ) {
         }
     }
 }
-
