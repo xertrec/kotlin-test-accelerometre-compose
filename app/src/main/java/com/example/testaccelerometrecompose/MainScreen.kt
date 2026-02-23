@@ -2,12 +2,15 @@ package com.example.testaccelerometrecompose
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Scaffold
@@ -30,13 +33,21 @@ import kotlin.math.abs
 
 @Composable
 fun MainScreen(viewModel: MainViewModel) {
+    // Accelerometer states
     val accelerometerData by viewModel.accelerometerData.collectAsState()
     val isAccelerometerAvailable by viewModel.isAccelerometerAvailable.collectAsState()
     val accelerometerInfo by viewModel.accelerometerInfo.collectAsState()
-
     var color by remember { mutableStateOf(false) }
+
+    // Light sensor states
+    val lightSensorData by viewModel.lightSensorData.collectAsState()
+    val isLightSensorAvailable by viewModel.isLightSensorAvailable.collectAsState()
+    val lightSensorInfo by viewModel.lightSensorInfo.collectAsState()
+    val lightThresholds by viewModel.lightThresholds.collectAsState()
+
     val context = LocalContext.current
 
+    // Shake detection logic
     LaunchedEffect(accelerometerData) {
         val (x, y, z) = accelerometerData
         if (abs(x) > 15 || abs(y) > 15 || abs(z) > 15) {
@@ -48,13 +59,12 @@ fun MainScreen(viewModel: MainViewModel) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
     ) { contentPadding ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(contentPadding),
         ) {
-            // Top Area
+            // Top Area (Accelerometer color)
             Card(
                 modifier = Modifier
                     .weight(1f)
@@ -63,7 +73,7 @@ fun MainScreen(viewModel: MainViewModel) {
                 border = BorderStroke(10.dp, if (color) Color.Black else Color.LightGray),
             ) {}
 
-            // Middle Area
+            // Middle Area (Accelerometer info)
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -72,7 +82,7 @@ fun MainScreen(viewModel: MainViewModel) {
                 contentAlignment = Alignment.Center
             ) {
                 if (isAccelerometerAvailable) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.verticalScroll(rememberScrollState())) {
                         Text(
                             text = stringResource(R.string.shake),
                             textAlign = TextAlign.Center
@@ -91,12 +101,39 @@ fun MainScreen(viewModel: MainViewModel) {
                 }
             }
 
-            // Bottom Area
+            // Bottom Area (Light Sensor info)
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth(),
-            )
+                    .fillMaxWidth()
+                    .background(Color.Yellow)
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                if (isLightSensorAvailable) {
+                    val intensity = when {
+                        lightThresholds == null -> "..."
+                        lightSensorData < lightThresholds!!.first -> "LOW"
+                        lightSensorData < lightThresholds!!.second -> "MEDIUM"
+                        else -> "HIGH"
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.verticalScroll(rememberScrollState())) {
+                        Text(text = "Light Sensor Info:", textAlign = TextAlign.Center)
+                        Text(text = lightSensorInfo, textAlign = TextAlign.Center)
+                        if(lightSensorData > 0f){
+                            Text(
+                                text = "New value light sensor = $lightSensorData",
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(top = 16.dp)
+                            )
+                            Text(text = "$intensity Intensity", textAlign = TextAlign.Center)
+                        }
+
+                    }
+                } else {
+                    Text(text = "Sorry, there is no light sensor", textAlign = TextAlign.Center)
+                }
+            }
         }
     }
 }
