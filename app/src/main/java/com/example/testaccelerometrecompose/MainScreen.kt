@@ -1,4 +1,4 @@
-package com.example.testaccelerometrecompose.ui.theme
+package com.example.testaccelerometrecompose
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
@@ -18,42 +18,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.example.testaccelerometrecompose.MainViewModel
-import com.example.testaccelerometrecompose.R
 
 @Composable
-fun MainScreen(
-    viewModel: MainViewModel
-) {
+fun MainScreen(viewModel: MainViewModel) {
     val color by viewModel.color.collectAsState()
 
     Scaffold(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) { contentPadding ->
 
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(contentPadding),
         ) {
-
             SensorsColor(
                 color = color,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
             )
 
             Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
             )
 
             Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
             )
         }
     }
@@ -62,14 +61,14 @@ fun MainScreen(
 @Composable
 fun SensorsColor(
     color: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(if (color) Color.Red else Color.Green),
         shape = CardDefaults.shape,
         elevation = CardDefaults.cardElevation(),
-        border = BorderStroke(10.dp, if (color) Color.Black else Color.LightGray)
+        border = BorderStroke(10.dp, if (color) Color.Black else Color.LightGray),
     ) {
         Column {
             Text(text = "")
