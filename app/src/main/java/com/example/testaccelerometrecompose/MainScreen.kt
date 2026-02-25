@@ -33,13 +33,12 @@ import kotlin.math.abs
 
 @Composable
 fun MainScreen(viewModel: MainViewModel) {
-    // Accelerometer states
+    // Recogemos el estado del ViewModel (Datos de los sensores)
     val accelerometerData by viewModel.accelerometerData.collectAsState()
     val isAccelerometerAvailable by viewModel.isAccelerometerAvailable.collectAsState()
     val accelerometerInfo by viewModel.accelerometerInfo.collectAsState()
     var color by remember { mutableStateOf(false) }
 
-    // Light sensor states
     val lightSensorData by viewModel.lightSensorData.collectAsState()
     val isLightSensorAvailable by viewModel.isLightSensorAvailable.collectAsState()
     val lightSensorInfo by viewModel.lightSensorInfo.collectAsState()
@@ -47,7 +46,7 @@ fun MainScreen(viewModel: MainViewModel) {
 
     val context = LocalContext.current
 
-    // Shake detection logic
+    // Lógica para detectar la sacudida y cambiar el color
     LaunchedEffect(accelerometerData) {
         val (x, y, z) = accelerometerData
         if (abs(x) > 15 || abs(y) > 15 || abs(z) > 15) {
@@ -64,7 +63,7 @@ fun MainScreen(viewModel: MainViewModel) {
                 .fillMaxSize()
                 .padding(contentPadding),
         ) {
-            // Top Area (Accelerometer color)
+            // Zona superior: Cambia de color al detectar sacudidas
             Card(
                 modifier = Modifier
                     .weight(1f)
@@ -73,7 +72,8 @@ fun MainScreen(viewModel: MainViewModel) {
                 border = BorderStroke(10.dp, if (color) Color.Black else Color.LightGray),
             ) {}
 
-            // Middle Area (Accelerometer info)
+            // Zona central: Mensajes del acelerómetro
+            // Ponemos scroll por si el texto no cabe en pantallas pequeñas
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -101,7 +101,7 @@ fun MainScreen(viewModel: MainViewModel) {
                 }
             }
 
-            // Bottom Area (Light Sensor info)
+            // Zona inferior: Sensor de luz con fondo amarillo
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -111,6 +111,7 @@ fun MainScreen(viewModel: MainViewModel) {
                 contentAlignment = Alignment.Center
             ) {
                 if (isLightSensorAvailable) {
+                    // Calculamos intensidad basándonos en los umbrales
                     val intensity = when {
                         lightThresholds == null -> "..."
                         lightSensorData < lightThresholds!!.first -> "LOW"

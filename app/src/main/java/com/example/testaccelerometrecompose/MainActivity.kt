@@ -8,6 +8,7 @@ import com.example.testaccelerometrecompose.ui.theme.TestAccelerometreComposeThe
 
 class MainActivity : ComponentActivity() {
 
+    // Instancia del ViewModel siguiendo la arquitectura MVVM
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,11 +22,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // Gestión del ciclo de vida: registramos los sensores solo cuando la app está activa
     override fun onResume() {
         super.onResume()
         viewModel.startListening()
     }
 
+    // Muy importante: cancelamos el registro al pausar para evitar consumo innecesario de batería
     override fun onPause() {
         super.onPause()
         viewModel.stopListening()
